@@ -1,0 +1,580 @@
+<title>ISA와 CISC·RISC 노트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f2e9;
+    --surface: #ffffff;
+    --surface-2: #efe8d8;
+    --ink: #211d16;
+    --ink-soft: #5c5645;
+    --ink-faint: #8c856f;
+    --border: #ddd2b6;
+    --border-strong: #c7b990;
+    --address: #a85a17;
+    --data: #1f6f8b;
+    --control: #3f7a4f;
+    --accent: #2c4a6b;
+    --accent-soft: #dfe7ee;
+    --shadow: rgba(43, 36, 20, 0.10);
+    --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171c;
+      --surface: #1b1f26;
+      --surface-2: #20262f;
+      --ink: #ece6d8;
+      --ink-soft: #b3ab97;
+      --ink-faint: #7e7967;
+      --border: #333b47;
+      --border-strong: #45505f;
+      --address: #e0954a;
+      --data: #58b8de;
+      --control: #7ecb8e;
+      --accent: #7fa8d6;
+      --accent-soft: #23344a;
+      --shadow: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14171c;
+    --surface: #1b1f26;
+    --surface-2: #20262f;
+    --ink: #ece6d8;
+    --ink-soft: #b3ab97;
+    --ink-faint: #7e7967;
+    --border: #333b47;
+    --border-strong: #45505f;
+    --address: #e0954a;
+    --data: #58b8de;
+    --control: #7ecb8e;
+    --accent: #7fa8d6;
+    --accent-soft: #23344a;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.75;
+    padding-inline: 20px;
+    padding-block: 40px 80px;
+  }
+
+  .page { max-width: 760px; margin: 0 auto; }
+
+  h1, h2, h3 { text-wrap: balance; font-weight: 700; color: var(--ink); }
+
+  .hero {
+    border: 1px solid var(--border);
+    background: linear-gradient(155deg, var(--surface) 0%, var(--surface-2) 100%);
+    border-radius: 18px;
+    padding: 32px clamp(20px, 5vw, 40px);
+    box-shadow: 0 10px 30px var(--shadow);
+  }
+  .hero .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .hero h1 { font-size: clamp(28px, 5vw, 36px); margin: 0 0 14px; letter-spacing: -0.01em; }
+  .hero p { margin: 0; color: var(--ink-soft); font-size: 16px; max-width: 62ch; }
+  .hero .keyline { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .pill {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 5px 12px;
+    color: var(--ink-soft);
+    background: var(--surface);
+  }
+
+  .toc { margin-top: 22px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); padding: 16px 18px; }
+  .toc-title { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; }
+  @media (max-width: 480px) { .toc-grid { grid-template-columns: 1fr; } }
+  .toc-grid a { color: var(--ink); text-decoration: none; font-size: 14.5px; display: flex; gap: 8px; padding: 4px 0; border-bottom: 1px dashed transparent; }
+  .toc-grid a:hover { border-bottom-color: var(--border-strong); }
+  .toc-num { font-family: var(--font-mono); color: var(--ink-faint); }
+
+  section { margin-top: 56px; scroll-margin-top: 20px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .sec-num { font-family: var(--font-mono); color: var(--accent); font-size: 15px; font-weight: 600; }
+  h2 { font-size: clamp(21px, 3.6vw, 25px); margin: 0; }
+  .sec-sub { color: var(--ink-faint); font-size: 14.5px; margin: 6px 0 20px; }
+  h3 { font-size: 17.5px; margin: 26px 0 10px; }
+
+  p { margin: 0 0 14px; }
+  .lede { font-size: 16.5px; color: var(--ink-soft); }
+
+  strong { color: var(--ink); font-weight: 600; }
+  .tag-addr { color: var(--address); font-weight: 600; }
+  .tag-data { color: var(--data); font-weight: 600; }
+  .tag-ctrl { color: var(--control); font-weight: 600; }
+  code, .mono {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+
+  ul, ol { margin: 0 0 16px; padding-left: 22px; }
+  li { margin-bottom: 8px; }
+  li::marker { color: var(--ink-faint); }
+
+  .callout { border: 1px solid var(--border); background: var(--surface); border-radius: 14px; padding: 18px 20px; margin: 20px 0; }
+  .callout-title { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
+  .callout.key { border-left: 4px solid var(--accent); }
+  .callout.key .callout-title { color: var(--accent); }
+  .callout.warn { border-left: 4px solid var(--address); }
+  .callout.warn .callout-title { color: var(--address); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .table-wrap { overflow-x: auto; margin: 18px 0; border: 1px solid var(--border); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 480px; }
+  thead th { text-align: left; background: var(--surface-2); color: var(--ink-soft); font-weight: 600; font-size: 12.5px; letter-spacing: 0.03em; text-transform: uppercase; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--ink-soft); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  tbody tr:nth-child(odd) { background: color-mix(in srgb, var(--surface-2) 35%, transparent); }
+
+  figure { margin: 24px 0; }
+  .diagram-card { border: 1px solid var(--border); background: var(--surface); border-radius: 16px; padding: clamp(14px, 4vw, 26px); }
+  .diagram-card svg { width: 100%; height: auto; display: block; color: var(--ink-soft); }
+  figcaption { font-size: 13.5px; color: var(--ink-faint); margin-top: 10px; text-align: center; }
+  .svg-label { font-family: var(--font-mono); font-size: 12px; fill: currentColor; }
+  .svg-label-title { font-family: var(--font-body); font-weight: 600; font-size: 13px; fill: var(--ink); }
+
+  .trace-step { display: flex; gap: 14px; border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+  .trace-step .n { font-family: var(--font-mono); font-weight: 600; color: var(--accent); flex: none; width: 22px; }
+  .trace-step .t { flex: 1; }
+  .trace-step .t .lbl { font-weight: 600; color: var(--ink); display:block; margin-bottom: 2px; }
+  .trace-step .t .d { color: var(--ink-soft); font-size: 14.5px; }
+
+  .calc-block {
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.95;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .memo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+  @media (max-width: 620px) { .memo-grid { grid-template-columns: repeat(2, 1fr); } }
+  .memo-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 620px) { .memo-grid.cols-3 { grid-template-columns: repeat(2, 1fr); } }
+  .memo-card { border: 1px solid var(--border); background: var(--surface); border-radius: 14px; padding: 16px 14px; }
+  .memo-card .k { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+  .memo-card .v { font-size: 15px; font-weight: 600; margin-top: 6px; }
+  .memo-card .d { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; }
+
+  .glossary dt { font-weight: 600; color: var(--ink); margin-top: 14px; font-size: 15px; }
+  .glossary dd { margin: 4px 0 0; color: var(--ink-soft); }
+
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--ink-faint); font-size: 13px; }
+  a { color: var(--accent); }
+</style>
+
+<div class="page">
+
+  <div class="hero">
+    <p class="eyebrow">컴퓨터 구조 · 8장</p>
+    <h1>같은 프로그램이 왜 다른 CPU에서는 안 돌아갈까 — ISA와 CISC·RISC 노트</h1>
+    <p class="lede" style="margin-top:6px;"><strong>ISA</strong>는 소프트웨어와 CPU가 함께 지키는 약속입니다. 이 노트는 ISA와 <strong>마이크로아키텍처</strong>의 차이, 복잡한 명령을 선호하는 <strong>CISC</strong>와 단순한 명령을 선호하는 <strong>RISC</strong>라는 두 설계 경향, 현대 CPU 내부의 <strong>마이크로옵</strong>, 그리고 실행 파일 호환에 실제로 영향을 주는 요소들까지 그림으로 차근차근 정리합니다.</p>
+    <div class="keyline">
+      <span class="pill">ISA·마이크로아키텍처</span>
+      <span class="pill">CISC vs RISC</span>
+      <span class="pill">Load/Store·마이크로옵</span>
+      <span class="pill">호환성(ABI 등)</span>
+    </div>
+  </div>
+
+  <nav class="toc" aria-label="목차">
+    <p class="toc-title">이 노트에서 다루는 내용</p>
+    <div class="toc-grid">
+      <a href="#isa-def"><span class="toc-num">01</span> ISA란 무엇인가</a>
+      <a href="#isa-vs-microarch"><span class="toc-num">02</span> ISA와 마이크로아키텍처</a>
+      <a href="#cisc-risc-intro"><span class="toc-num">03</span> CISC와 RISC — 두 가지 설계 경향</a>
+      <a href="#cisc-risc-detail"><span class="toc-num">04</span> CISC와 RISC 자세히 비교하기</a>
+      <a href="#load-store"><span class="toc-num">05</span> Load/Store 방식</a>
+      <a href="#micro-op"><span class="toc-num">06</span> 마이크로옵 — 내부 변환</a>
+      <a href="#compat"><span class="toc-num">07</span> 호환성은 ISA만으로 정해지지 않는다</a>
+      <a href="#real-isa"><span class="toc-num">08</span> 실제 ISA 예시</a>
+      <a href="#summary8"><span class="toc-num">09</span> 총정리 · 암기 카드</a>
+    </div>
+  </nav>
+
+  <div class="callout key" style="margin-top:22px;">
+    <p class="callout-title">먼저 알아둘 말 — ISA와 설계 경향</p>
+    <p><strong>ISA</strong> — 소프트웨어와 CPU 사이의 실행 약속(명령어·레지스터·주소 규칙 등).<br>
+    <strong>마이크로아키텍처</strong> — 그 약속을 칩 안에서 어떻게 구현했는지(파이프라인·캐시·실행 유닛 수 등).<br>
+    <strong>CISC</strong> — 복잡한 일을 한 명령에 담는 설계 경향.<br>
+    <strong>RISC</strong> — 단순한 명령을 빠르게 많이 처리하는 설계 경향.<br>
+    <strong>ABI</strong> — 함수 인자 전달·바이너리 연결 등 실행 파일·라이브러리 연결의 세부 규칙. ISA와 별개로 호환에 영향을 준다.</p>
+    <p style="margin-top:10px;"><strong>한 줄로:</strong> 앱은 ISA를 보고 만들고, 같은 ISA라도 칩 내부(마이크로아키텍처)는 세대마다 달라도 됩니다.</p>
+  </div>
+
+  <!-- ================= 01 ISA란 무엇인가 ================= -->
+  <section id="isa-def">
+    <div class="sec-head"><span class="sec-num">01</span><h2>ISA란 무엇인가</h2></div>
+    <p class="sec-sub">소프트웨어와 CPU가 함께 지키는 약속</p>
+
+    <p><strong>ISA(Instruction Set Architecture, 명령어 집합 구조)</strong>는 명령어의 종류·의미, 소프트웨어에 보이는 레지스터, 주소 지정 규칙 등 <strong>실행에 필요한 약속</strong>을 정의합니다. 컴파일러는 이 약속을 보고 소스 코드를 기계어로 번역합니다. 같은 코드를 x86-64와 Arm 대상으로 각각 컴파일하면, 서로 다른 기계어가 만들어질 수 있습니다.</p>
+
+    <figure>
+      <div class="diagram-card">
+        <svg viewBox="0 0 700 200" role="img" aria-label="소프트웨어는 ISA라는 약속을 보고 만들어지고, 하드웨어는 같은 약속을 지키도록 만들어진다. ISA는 둘 사이의 공통 약속이다">
+          <defs>
+            <marker id="i1a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--data)"/></marker>
+          </defs>
+
+          <text x="228" y="20" class="svg-label" text-anchor="middle" fill="var(--data)">이 약속대로 만든다</text>
+          <text x="472" y="20" class="svg-label" text-anchor="middle" fill="var(--data)">이 약속대로 만든다</text>
+
+          <rect x="20" y="70" width="180" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <text x="110" y="100" class="svg-label-title" text-anchor="middle">소프트웨어</text>
+          <text x="110" y="120" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">프로그램·컴파일러</text>
+
+          <rect x="260" y="55" width="180" height="100" rx="12" fill="none" stroke="var(--accent)" stroke-width="2"/>
+          <text x="350" y="98" class="svg-label-title" text-anchor="middle" fill="var(--accent)">ISA</text>
+          <text x="350" y="118" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">명령어·레지스터·</text>
+          <text x="350" y="134" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">주소 규칙</text>
+
+          <rect x="500" y="70" width="180" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <text x="590" y="100" class="svg-label-title" text-anchor="middle">하드웨어</text>
+          <text x="590" y="120" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">CPU</text>
+
+          <line x1="202" y1="105" x2="256" y2="105" stroke="var(--data)" stroke-width="1.8" marker-end="url(#i1a)"/>
+          <line x1="498" y1="105" x2="444" y2="105" stroke="var(--data)" stroke-width="1.8" marker-end="url(#i1a)"/>
+        </svg>
+      </div>
+      <figcaption>그림 1. ISA는 소프트웨어와 하드웨어가 함께 지키는 약속이다.</figcaption>
+    </figure>
+
+    <div class="callout">
+      <p class="callout-title">먼저 알아둘 말 — 헷갈리기 쉬운 말</p>
+      <p><strong>바이너리(기계어 프로그램)</strong> — CPU가 실행하는 비트 패턴으로 된 명령 열.<br>
+      <strong>호환</strong> — 같은 실행 파일이 그대로 돌아가는지. ISA·OS·ABI·라이브러리가 모두 영향을 준다.<br>
+      <strong>마이크로옵(마이크로연산)</strong> — 외부에 보이는 복잡한 명령을 CPU 내부에서 더 작은 동작으로 나누어 실행하는 단위.<br>
+      <strong>에뮬레이션</strong> — 다른 ISA용 프로그램을 변환·해석 계층으로 실행하는 방법. 네이티브 실행과 구분된다.</p>
+      <p style="margin-top:10px;"><strong>한 줄로:</strong> "CPU가 같다"는 것만으로 실행 파일이 항상 호환되지는 않습니다.</p>
+    </div>
+  </section>
+
+  <!-- ================= 02 ISA와 마이크로아키텍처 ================= -->
+  <section id="isa-vs-microarch">
+    <div class="sec-head"><span class="sec-num">02</span><h2>ISA와 마이크로아키텍처</h2></div>
+    <p class="sec-sub">약속은 그대로, 구현은 세대마다 달라도 된다</p>
+
+    <p><strong>마이크로아키텍처</strong>는 ISA라는 약속을 실제 하드웨어로 구현한 방식입니다. 같은 ISA를 구현하더라도 <strong>파이프라인 깊이, 캐시 크기, 실행 장치 수</strong>는 세대마다 달라질 수 있습니다. ISA가 내부 설계에 영향을 주긴 하지만, 하나의 내부 구조만을 반드시 정하는 것은 아닙니다.</p>
+
+    <figure>
+      <div class="diagram-card">
+        <svg viewBox="0 0 700 260" role="img" aria-label="같은 ISA(x86-64)를 세대 1, 세대 2, 세대 3의 서로 다른 마이크로아키텍처가 각자 다른 방식으로 구현한다">
+          <defs>
+            <marker id="i2a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--control)"/></marker>
+          </defs>
+
+          <rect x="200" y="20" width="300" height="60" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+          <text x="350" y="45" class="svg-label-title" text-anchor="middle" fill="var(--accent)">ISA (예: x86-64)</text>
+          <text x="350" y="64" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">명령어·레지스터 규칙은 그대로</text>
+
+          <line x1="300" y1="80" x2="200" y2="138" stroke="var(--control)" stroke-width="1.6" marker-end="url(#i2a)"/>
+          <line x1="350" y1="80" x2="350" y2="138" stroke="var(--control)" stroke-width="1.6" marker-end="url(#i2a)"/>
+          <line x1="400" y1="80" x2="500" y2="138" stroke="var(--control)" stroke-width="1.6" marker-end="url(#i2a)"/>
+
+          <rect x="40" y="140" width="180" height="90" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="130" y="172" class="svg-label-title" text-anchor="middle">세대 1</text>
+          <text x="130" y="192" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">마이크로아키텍처</text>
+          <text x="130" y="210" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">파이프라인 얕음</text>
+
+          <rect x="260" y="140" width="180" height="90" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="350" y="172" class="svg-label-title" text-anchor="middle">세대 2</text>
+          <text x="350" y="192" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">마이크로아키텍처</text>
+          <text x="350" y="210" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">캐시 확장</text>
+
+          <rect x="480" y="140" width="180" height="90" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="570" y="172" class="svg-label-title" text-anchor="middle">세대 3</text>
+          <text x="570" y="192" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">마이크로아키텍처</text>
+          <text x="570" y="210" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">실행 유닛 증가</text>
+        </svg>
+      </div>
+      <figcaption>그림 2. 같은 ISA를 여러 세대의 서로 다른 마이크로아키텍처가 구현할 수 있다.</figcaption>
+    </figure>
+
+    <p>즉 <strong>같은 ISA를 지키면 같은 기계어 프로그램이 돌아갈 수 있고</strong>, 칩 내부 구현은 세대마다 얼마든지 달라질 수 있습니다. 앱 개발자는 ISA만 보고 프로그램을 만들고, 칩 회사는 그 약속을 지키는 한 내부를 자유롭게 개선합니다.</p>
+  </section>
+
+  <!-- ================= 03 CISC와 RISC 개관 ================= -->
+  <section id="cisc-risc-intro">
+    <div class="sec-head"><span class="sec-num">03</span><h2>CISC와 RISC — 두 가지 설계 경향</h2></div>
+    <p class="sec-sub">복잡한 명령 하나 vs 단순한 명령 여러 개</p>
+
+    <p>ISA를 설계할 때 크게 두 가지 경향이 있었습니다. <strong>CISC(Complex Instruction Set Computer)</strong>는 복잡한 일을 한 명령에 담는 쪽이고, <strong>RISC(Reduced Instruction Set Computer)</strong>는 단순한 명령을 빠르게 많이 처리하는 쪽입니다.</p>
+
+    <figure>
+      <div class="diagram-card">
+        <svg viewBox="0 0 700 260" role="img" aria-label="CISC 경향은 복잡한 일을 한 명령에 담는 설계 쪽이고, RISC 경향은 단순한 명령을 빠르게 많이 처리하는 설계 쪽이다">
+          <rect x="20" y="20" width="310" height="220" rx="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="6 4"/>
+          <text x="40" y="44" class="svg-label-title" fill="var(--ink-soft)">CISC 경향</text>
+          <rect x="50" y="100" width="250" height="100" rx="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <text x="175" y="140" class="svg-label-title" text-anchor="middle">복잡한 일을 한 명령에</text>
+          <text x="175" y="160" class="svg-label-title" text-anchor="middle">담는 설계 쪽</text>
+          <text x="175" y="182" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">(전통 x86)</text>
+
+          <rect x="370" y="20" width="310" height="220" rx="14" fill="none" stroke="var(--control)" stroke-width="1.6" stroke-dasharray="6 4"/>
+          <text x="390" y="44" class="svg-label-title" fill="var(--control)">RISC 경향</text>
+          <rect x="400" y="100" width="250" height="100" rx="10" fill="none" stroke="var(--control)" stroke-width="1.8"/>
+          <text x="525" y="140" class="svg-label-title" text-anchor="middle" fill="var(--control)">단순한 명령을</text>
+          <text x="525" y="160" class="svg-label-title" text-anchor="middle" fill="var(--control)">빠르게 많이 처리</text>
+          <text x="525" y="182" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">(많은 Arm)</text>
+        </svg>
+      </div>
+      <figcaption>그림 3. CISC와 RISC는 실제 제품을 딱 자르는 분류가 아니라, 설계 경향의 이름이다.</figcaption>
+    </figure>
+
+    <p>강의는 메모리가 귀했던 시절, 복잡한 명령으로 프로그램을 짧게 표현하는 CISC의 장점을 설명합니다. 동시에 복잡한 명령을 아무리 많이 제공해도 <strong>실제 프로그램에서는 그중 일부만 자주 쓰인다</strong>는 문제의식도 소개합니다.</p>
+
+    <div class="callout warn">
+      <p class="callout-title">"20%가 80% 사용" — 측정값이 아니라 비유</p>
+      <p>강의의 "명령어의 20%가 실제 사용의 80%를 차지한다"는 표현은 <strong>빈도가 한쪽으로 쏠린다는 것을 보여주는 사례</strong>일 뿐입니다. 모든 ISA·모든 프로그램에 그대로 적용되는 정확한 측정값으로 외우지 않도록 주의하세요.</p>
+    </div>
+  </section>
+
+  <!-- ================= 04 CISC RISC 상세비교 ================= -->
+  <section id="cisc-risc-detail">
+    <div class="sec-head"><span class="sec-num">04</span><h2>CISC와 RISC 자세히 비교하기</h2></div>
+    <p class="sec-sub">여러 기준으로 나란히 놓고 보면 차이가 또렷해진다</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구분</th><th>CISC</th><th>RISC</th></tr></thead>
+        <tbody>
+          <tr><td>이름</td><td>Complex Instruction Set Computer</td><td>Reduced Instruction Set Computer</td></tr>
+          <tr><td>입문적 성격</td><td>복잡하고 다양한 명령</td><td>단순하고 규칙적인 명령 중심</td></tr>
+          <tr><td>길이</td><td>가변 길이 경향</td><td>규칙적·고정 길이 경향</td></tr>
+          <tr><td>메모리 접근</td><td>다양한 연산과 주소 방식 가능</td><td>Load와 Store로 접근을 분리하는 경향</td></tr>
+          <tr><td>레지스터 활용</td><td>설계에 따라 다름</td><td>범용 레지스터를 적극 활용하는 경향</td></tr>
+          <tr><td>같은 작업의 명령어 수</td><td>복잡한 한 명령으로 줄일 수 있음</td><td>단순한 여러 명령으로 나눌 수 있음</td></tr>
+          <tr><td>파이프라인</td><td>해석·분할 과정이 복잡할 수 있음</td><td>규칙적인 구조가 유리할 수 있음</td></tr>
+          <tr><td>대표 계열</td><td>x86, x86-64</td><td>Arm 계열, RISC-V 등</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size:13.5px; color:var(--ink-faint);">이 표는 <strong>경향</strong>을 비교한 것이지, 모든 CISC·RISC 제품이 이 기준을 예외 없이 따른다는 뜻은 아닙니다. ISA 이름만으로 발열·전력·성능의 우열을 단정하지 않습니다.</p>
+  </section>
+
+  <!-- ================= 05 Load/Store ================= -->
+  <section id="load-store">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Load/Store 방식</h2></div>
+    <p class="sec-sub">메모리 접근과 계산을 분리하면, 각 명령은 단순해진다</p>
+
+    <p>RISC 경향이 왜 여러 명령어를 필요로 하는지는 <strong>Load/Store 방식</strong>의 예를 보면 이해가 됩니다. 메모리 값 두 개를 각각 레지스터로 <strong>LOAD</strong>하고, 레지스터끼리 <strong>ADD</strong>한 뒤, 결과를 <strong>STORE</strong>로 메모리에 저장합니다. 명령어 개수는 여러 개일 수 있지만, 각 명령이 맡는 역할은 단순해집니다.</p>
+
+    <figure>
+      <div class="diagram-card">
+        <svg viewBox="0 0 780 140" role="img" aria-label="메모리의 두 값을 LOAD로 레지스터에 옮기고, 레지스터끼리 ADD한 뒤, STORE로 결과를 메모리에 저장한다">
+          <defs>
+            <marker id="i5a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--control)"/></marker>
+          </defs>
+
+          <rect x="20" y="35" width="130" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <text x="85" y="65" class="svg-label-title" text-anchor="middle">메모리</text>
+          <text x="85" y="85" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">M[100], M[200]</text>
+
+          <line x1="152" y1="70" x2="206" y2="70" stroke="var(--control)" stroke-width="1.8" marker-end="url(#i5a)"/>
+          <text x="179" y="56" class="svg-label" text-anchor="middle" fill="var(--control)" font-size="11">LOAD</text>
+
+          <rect x="210" y="35" width="150" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <text x="285" y="65" class="svg-label-title" text-anchor="middle">레지스터</text>
+          <text x="285" y="85" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">R1, R2</text>
+
+          <line x1="362" y1="70" x2="416" y2="70" stroke="var(--control)" stroke-width="1.8" marker-end="url(#i5a)"/>
+          <text x="389" y="56" class="svg-label" text-anchor="middle" fill="var(--control)" font-size="11">ADD</text>
+
+          <rect x="420" y="35" width="150" height="70" rx="10" fill="none" stroke="var(--data)" stroke-width="1.8"/>
+          <text x="495" y="65" class="svg-label-title" text-anchor="middle" fill="var(--data)">레지스터</text>
+          <text x="495" y="85" class="svg-label" text-anchor="middle" fill="var(--data)">R3 = R1+R2</text>
+
+          <line x1="572" y1="70" x2="626" y2="70" stroke="var(--control)" stroke-width="1.8" marker-end="url(#i5a)"/>
+          <text x="599" y="56" class="svg-label" text-anchor="middle" fill="var(--control)" font-size="11">STORE</text>
+
+          <rect x="630" y="35" width="130" height="70" rx="10" fill="none" stroke="var(--address)" stroke-width="1.8"/>
+          <text x="695" y="65" class="svg-label-title" text-anchor="middle" fill="var(--address)">메모리</text>
+          <text x="695" y="85" class="svg-label" text-anchor="middle" fill="var(--address)">M[300]</text>
+        </svg>
+      </div>
+      <figcaption>그림 4. LOAD로 값을 레지스터에 가져오고, 레지스터끼리 계산한 뒤, STORE로 결과를 메모리에 저장한다.</figcaption>
+    </figure>
+
+    <p>이렇게 <strong>메모리 접근(LOAD/STORE)</strong>과 <strong>계산(ADD 등)</strong>을 분리하면, 계산 명령어는 "메모리에 접근할 수도, 안 할 수도 있는" 복잡한 경우를 고려하지 않고 항상 레지스터만 다루면 됩니다. 이 규칙성이 파이프라인 설계를 단순하게 만드는 데 도움이 됩니다.</p>
+  </section>
+
+  <!-- ================= 06 마이크로옵 ================= -->
+  <section id="micro-op">
+    <div class="sec-head"><span class="sec-num">06</span><h2>마이크로옵 — 내부 변환</h2></div>
+    <p class="sec-sub">겉은 CISC, 속은 RISC 조각일 수 있다</p>
+
+    <p>현대 x86 CPU는 겉으로는 복잡한 명령 하나로 보이는 것을, CPU 내부에서 더 작은 동작인 <strong>마이크로옵(micro-op)</strong>으로 나누어 처리하기도 합니다. 예를 들어 메모리에 직접 값을 더하는 복잡한 명령 하나가, 내부적으로는 앞서 본 Load/Store 방식과 비슷한 여러 조각으로 쪼개질 수 있습니다.</p>
+
+    <figure>
+      <div class="diagram-card">
+        <svg viewBox="0 0 700 230" role="img" aria-label="ADD 대괄호 주소 쉼표 5라는 x86 명령어 하나가 내부적으로 LOAD, ADD, STORE라는 세 개의 마이크로옵으로 나뉘어 처리된다">
+          <defs>
+            <marker id="i6a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--control)"/></marker>
+          </defs>
+
+          <rect x="240" y="20" width="220" height="60" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+          <text x="350" y="46" class="svg-label-title" text-anchor="middle" fill="var(--accent)" style="font-family:var(--font-mono);">ADD [주소], 5</text>
+          <text x="350" y="64" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">x86 명령어 하나(겉모습)</text>
+
+          <line x1="300" y1="80" x2="150" y2="138" stroke="var(--control)" stroke-width="1.6" marker-end="url(#i6a)"/>
+          <line x1="350" y1="80" x2="350" y2="138" stroke="var(--control)" stroke-width="1.6" marker-end="url(#i6a)"/>
+          <line x1="400" y1="80" x2="550" y2="138" stroke="var(--control)" stroke-width="1.6" marker-end="url(#i6a)"/>
+
+          <rect x="40" y="140" width="220" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="150" y="168" class="svg-label-title" text-anchor="middle">μop1: LOAD</text>
+          <text x="150" y="188" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">메모리 → 내부 레지스터</text>
+
+          <rect x="260" y="140" width="180" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="350" y="168" class="svg-label-title" text-anchor="middle">μop2: ADD</text>
+          <text x="350" y="188" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">내부에서 덧셈</text>
+
+          <rect x="440" y="140" width="220" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="550" y="168" class="svg-label-title" text-anchor="middle">μop3: STORE</text>
+          <text x="550" y="188" class="svg-label" text-anchor="middle" fill="var(--ink-faint)">내부 레지스터 → 메모리</text>
+        </svg>
+      </div>
+      <figcaption>그림 5. 겉으로는 명령어 하나(CISC 스타일)지만, 내부에서는 여러 마이크로옵으로 나뉘어 처리될 수 있다.</figcaption>
+    </figure>
+
+    <div class="callout warn">
+      <p class="callout-title">이것이 "x86이 RISC가 됐다"는 뜻은 아니다</p>
+      <p>내부적으로 마이크로옵으로 나누어 처리한다고 해서, <strong>x86의 외부 ISA 자체가 RISC로 바뀌는 것은 아닙니다.</strong> 소프트웨어에게 보이는 명령어 집합(ISA)은 여전히 x86이고, 마이크로옵으로의 분해는 어디까지나 내부 마이크로아키텍처의 구현 선택입니다. 반대로 RISC도 모든 명령이 반드시 한 클럭에 끝나는 것은 아니며, 고정 길이 명령만 존재하는 것도 아닙니다.</p>
+    </div>
+  </section>
+
+  <!-- ================= 07 호환성 ================= -->
+  <section id="compat">
+    <div class="sec-head"><span class="sec-num">07</span><h2>호환성은 ISA만으로 정해지지 않는다</h2></div>
+    <p class="sec-sub">CPU가 같다고 실행 파일이 항상 돌아가는 것은 아니다</p>
+
+    <p>다른 컴퓨터에서 실행 파일이 돌아가지 않는 원인은 ISA뿐만이 아닙니다. <strong>운영체제, 실행 파일 형식, ABI, 라이브러리</strong>의 차이일 수도 있습니다. 실행 파일이 그대로 돌아가려면 아래 네 가지가 모두 맞아야 합니다.</p>
+
+    <div class="memo-grid">
+      <div class="memo-card"><div class="k">ISA</div><div class="v">명령어·레지스터 규칙</div><div class="d">CPU가 같은 약속을 따르는지</div></div>
+      <div class="memo-card"><div class="k">운영체제</div><div class="v">실행 파일 형식·시스템 콜</div><div class="d">같은 OS인지</div></div>
+      <div class="memo-card"><div class="k">ABI</div><div class="v">함수 인자 전달·연결 규칙</div><div class="d">바이너리 연결 방식이 맞는지</div></div>
+      <div class="memo-card"><div class="k">라이브러리</div><div class="v">프로그램이 기대하는 코드</div><div class="d">필요한 라이브러리가 있는지</div></div>
+    </div>
+    <p style="text-align:center; margin-top:-8px;"><em class="mono" style="border:none; background:none; padding:0;">그림 6. 실행 파일이 그대로 돌아가려면 ISA뿐 아니라 운영체제·ABI·라이브러리까지 맞아야 한다.</em></p>
+
+    <p><strong>ABI(Application Binary Interface)</strong>는 함수 인자를 어떻게 전달하는지, 바이너리를 어떻게 연결하는지 등의 세부 규칙입니다. CPU의 ISA가 같다고 해서 모든 실행 파일이 그대로 호환되는 것은 아닙니다 — <strong>에뮬레이션이나 변환 계층</strong>이 서로 다른 ISA·환경 사이의 호환을 돕는 경우도 있습니다.</p>
+  </section>
+
+  <!-- ================= 08 실제 ISA 예시 ================= -->
+  <section id="real-isa">
+    <div class="sec-head"><span class="sec-num">08</span><h2>실제 ISA 예시</h2></div>
+    <p class="sec-sub">x86, Arm, RISC-V는 서로 다른 약속이다</p>
+
+    <p><strong>x86/x86-64, Arm, RISC-V</strong> 등은 서로 다른 ISA입니다. 바이너리는 서로 <strong>호환되지 않는 것이 기본</strong>입니다. 현대 CPU는 외부에 보이는 ISA와 내부에서 실제로 실행되는 마이크로옵이 다를 수 있으며, 컴파일러는 항상 대상 ISA에 맞춰 기계어를 생성합니다.</p>
+
+    <figure>
+      <div class="diagram-card">
+        <svg viewBox="0 0 700 250" role="img" aria-label="명령어 집합은 크게 CISC 계열과 RISC 계열로 나뉘고, CISC 계열에는 x86과 x86-64가, RISC 계열에는 ARM과 RISC-V가 흔히 속한다">
+          <defs>
+            <marker id="i7a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+          </defs>
+
+          <rect x="250" y="20" width="200" height="55" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+          <text x="350" y="53" class="svg-label-title" text-anchor="middle" fill="var(--accent)">명령어 집합(ISA)</text>
+
+          <line x1="300" y1="75" x2="185" y2="115" stroke="currentColor" stroke-width="1.4" marker-end="url(#i7a)"/>
+          <line x1="400" y1="75" x2="530" y2="115" stroke="var(--control)" stroke-width="1.4" marker-end="url(#i7a)"/>
+
+          <rect x="60" y="115" width="220" height="50" rx="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <text x="170" y="146" class="svg-label-title" text-anchor="middle">CISC 계열</text>
+
+          <rect x="420" y="115" width="220" height="50" rx="9" fill="none" stroke="var(--control)" stroke-width="1.7"/>
+          <text x="530" y="146" class="svg-label-title" text-anchor="middle" fill="var(--control)">RISC 계열</text>
+
+          <line x1="120" y1="165" x2="90" y2="195" stroke="currentColor" stroke-width="1.3" marker-end="url(#i7a)"/>
+          <line x1="220" y1="165" x2="230" y2="195" stroke="currentColor" stroke-width="1.3" marker-end="url(#i7a)"/>
+          <line x1="480" y1="165" x2="470" y2="195" stroke="var(--control)" stroke-width="1.3" marker-end="url(#i7a)"/>
+          <line x1="580" y1="165" x2="590" y2="195" stroke="var(--control)" stroke-width="1.3" marker-end="url(#i7a)"/>
+
+          <rect x="45" y="198" width="90" height="42" rx="8" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="90" y="224" class="svg-label-title" text-anchor="middle">x86</text>
+          <rect x="185" y="198" width="90" height="42" rx="8" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="230" y="224" class="svg-label-title" text-anchor="middle">x86-64</text>
+
+          <rect x="425" y="198" width="90" height="42" rx="8" fill="none" stroke="var(--control)" stroke-width="1.5"/>
+          <text x="470" y="224" class="svg-label-title" text-anchor="middle" fill="var(--control)">Arm</text>
+          <rect x="545" y="198" width="90" height="42" rx="8" fill="none" stroke="var(--control)" stroke-width="1.5"/>
+          <text x="590" y="224" class="svg-label-title" text-anchor="middle" fill="var(--control)">RISC-V</text>
+        </svg>
+      </div>
+      <figcaption>그림 7. x86·x86-64는 흔히 CISC 계열로, Arm·RISC-V는 흔히 RISC 계열로 분류된다 — 이는 설계 경향의 분류일 뿐, 절대적 성능 우열을 뜻하지 않는다.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= 09 총정리 ================= -->
+  <section id="summary8">
+    <div class="sec-head"><span class="sec-num">09</span><h2>총정리 · 암기 카드</h2></div>
+    <p class="sec-sub">이 노트 전체를 한눈에</p>
+
+    <div class="memo-grid">
+      <div class="memo-card"><div class="k">ISA</div><div class="v">소프트웨어·하드웨어의 공통 약속</div></div>
+      <div class="memo-card"><div class="k">마이크로아키텍처</div><div class="v">그 약속의 내부 구현, 세대마다 다름</div></div>
+      <div class="memo-card"><div class="k">CISC / RISC</div><div class="v">복잡한 명령 vs 단순한 명령 경향</div></div>
+      <div class="memo-card"><div class="k">호환성</div><div class="v">ISA+OS+ABI+라이브러리가 함께 결정</div></div>
+    </div>
+
+    <p style="text-align:center;" class="mono">ISA=약속 · 마이크로아키텍처=구현 · CISC=복잡한 한 명령 · RISC=단순한 여러 명령</p>
+
+    <dl class="glossary">
+      <dt>ISA / 마이크로아키텍처</dt>
+      <dd>ISA는 소프트웨어에 보이는 실행 약속, 마이크로아키텍처는 그 약속을 칩 안에서 구현한 방식.</dd>
+      <dt>CISC / RISC</dt>
+      <dd>CISC는 복잡한 일을 한 명령에 담는 설계 경향, RISC는 단순한 명령을 빠르게 많이 처리하는 설계 경향.</dd>
+      <dt>Load/Store 방식</dt>
+      <dd>메모리 접근(LOAD/STORE)과 계산(ADD 등)을 분리해, 각 명령을 단순하게 만드는 방식.</dd>
+      <dt>마이크로옵(micro-op)</dt>
+      <dd>외부에 보이는 복잡한 명령을 CPU 내부에서 더 작은 동작으로 나누어 실행하는 단위.</dd>
+      <dt>ABI</dt>
+      <dd>함수 인자 전달, 바이너리 연결 등 실행 파일·라이브러리 연결의 세부 규칙. ISA와 별개로 호환에 영향을 준다.</dd>
+      <dt>에뮬레이션</dt>
+      <dd>다른 ISA용 프로그램을 변환·해석 계층으로 실행하는 방법. 네이티브 실행과 구분된다.</dd>
+    </dl>
+
+    <div class="callout key" style="margin-top:28px;">
+      <p class="callout-title">한 문장 요약</p>
+      <p>ISA는 소프트웨어와 CPU가 함께 지키는 실행 약속이고, 마이크로아키텍처는 그 약속을 칩 안에서 구현한 방법입니다. CISC와 RISC는 이 약속을 설계할 때의 두 가지 경향일 뿐이며, 실행 파일이 실제로 돌아가려면 ISA뿐 아니라 운영체제·ABI·라이브러리까지 함께 맞아야 합니다.</p>
+    </div>
+  </section>
+
+  <footer>
+    소용우 님을 위한 컴퓨터 구조 8장 노트 · 원본 강의 자료를 체계적으로 재구성했습니다.
+  </footer>
+
+</div>
