@@ -12,3 +12,5 @@ for i, char in enumerate(text):
 print("\033[0m")  # 색상 초기화
 
 print ("Hello world")
+
+print("호텔에 사쿠라가 휘날립니다")
