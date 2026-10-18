@@ -1,1 +1,1 @@
-print ("Hello world")
+print ("영걸오빠 짱짱짱!!!")
