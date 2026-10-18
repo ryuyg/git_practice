@@ -15,7 +15,10 @@ for i, char in enumerate(text):
 print ("날씨가 무지개같군요!?")
 print ("Hello ")
 print("\033[0m")  # 색상 초기화
-
+print ("Hello ")
+print ("Hello ")
+print ("Hello ")
+print ("Hello ")
 print ("Hello world")
 
 print("호텔에 사쿠라가 휘날립니다")
